@@ -1,18 +1,9 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Dimensions,
-  ScrollView,
-  Button,
-  Modal,
-} from "react-native";
-import { useState, useEffect, useRef } from "react";
-import Notification from "./Notification";
-import * as Device from "expo-device";
+import { View, Text, Button, ScrollView, Dimensions } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Notifier, Easing } from "react-native-notifier";
 import * as Notifications from "expo-notifications";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import CustomNotification from "./CustomNotification";
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -20,18 +11,12 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
-export default function NotificationContainer() {
+export default function Container() {
   const [list, setlist] = useState([]);
   const [expoPushToken, setExpoPushToken] = useState("");
   const [notification, setNotification] = useState(false);
   const notificationListener = useRef();
   const responseListener = useRef();
-  const [modalVisible, setModalVisible] = useState(true);
-
-  const pan = Gesture.Pan().onUpdate((e) => {
-    console.log(e.translationX);
-  });
-  const childRef = useRef();
 
   useEffect(() => {
     registerForPushNotificationsAsync().then((token) => {
@@ -46,9 +31,26 @@ export default function NotificationContainer() {
         console.log(notification.request.content.data);
         setNotification(notification);
         setlist((oldArray) => [...oldArray, notification.request.content.data]);
-        console.log(childRef.current);
-        childRef.current.focus();
-        // setModalVisible(!modalVisible);
+        const renderitem = () => {
+          return (
+            <CustomNotification item={notification.request.content.data} />
+          );
+        };
+        Notifier.showNotification({
+          title: "John Doe",
+          description: "Hello! Can you help me with notifications?",
+          duration: 0,
+          Component: renderitem,
+          showAnimationDuration: 800,
+          showEasing: Easing.bounce,
+          onHidden: () => console.log("Hidden"),
+          onPress: () => console.log("Press"),
+          queueMode: "next",
+          hideOnPress: false,
+          containerStyle: {
+            paddingTop: 30,
+          },
+        });
       });
 
     responseListener.current =
@@ -63,56 +65,7 @@ export default function NotificationContainer() {
       Notifications.removeNotificationSubscription(responseListener.current);
     };
   }, []);
-
-  const rendItem = ({ item }) => {
-    const itemRef = childRef;
-
-    return <Notification ref={itemRef} item={item}></Notification>;
-  };
-
-  return (
-    <ScrollView
-      horizontal={true}
-      decelerationRate={0}
-      snapToInterval={Dimensions.get("window").width}
-      snapToAlignment={"center"}
-      style={styles.container}
-    >
-      {list.map((item, index) => {
-        console.log(index);
-        return (
-          <GestureDetector gesture={pan}>
-            <Notification
-              ref={childRef}
-              length={list.length}
-              index={index}
-              item={item}
-              key={index}
-            ></Notification>
-          </GestureDetector>
-        );
-      })}
-    </ScrollView>
-  );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    height: "auto",
-    borderWidth: 1,
-    borderColor: "black",
-    zIndex: 5,
-  },
-  ModalContainer: {
-    flex: 0.2,
-    backgroundColor: "red",
-  },
-  ModalContent: {
-    borderWidth: 10,
-    borderColor: "white",
-    flex: 0.5,
-  },
-});
 
 async function schedulePushNotification() {
   await Notifications.scheduleNotificationAsync({
@@ -163,26 +116,3 @@ async function registerForPushNotificationsAsync() {
 
   return token;
 }
-
-//  <ScrollView
-//    horizontal={true}
-//    decelerationRate={0}
-//    snapToInterval={Dimensions.get("window").width}
-//    snapToAlignment={"center"}
-//    style={styles.container}
-//  >
-//    {list.map((item, index) => {
-//      console.log(index);
-//      return (
-//        <GestureDetector gesture={pan}>
-//          <Notification
-//            ref={childRef}
-//            length={list.length}
-//            index={index}
-//            item={item}
-//            key={index}
-//          ></Notification>
-//        </GestureDetector>
-//      );
-//    })}
-//  </ScrollView>;

@@ -5,27 +5,23 @@ import {
   Dimensions,
   TouchableOpacity,
   Image,
+  ScrollView,
 } from "react-native";
-import React, { useImperativeHandle, useState, forwardRef } from "react";
+import React, { useState } from "react";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import CompassArrow from "../comp/Compass";
 import HTMLView from "react-native-htmlview";
-import { ArrowUpFromDot } from "lucide-react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import CompassArrow from "./Compass";
+import { List } from "lucide-react-native";
 
-const Notification = forwardRef(function ({ item }, ref) {
+export default function CustomNotification({ item }) {
   const height = useSharedValue(120);
-  const translateY = useSharedValue(-height.value);
   const [visible, setvisible] = useState(false);
   const [fullcontent, setfullcontent] = useState(false);
-  const pan = Gesture.Pan().onUpdate((e) => {
-    console.log(e.translationX);
-    // height.value = e.translationX;
-  });
+
   const handlePress = () => {
     if (visible == false) {
       height.value += 150;
@@ -44,105 +40,74 @@ const Notification = forwardRef(function ({ item }, ref) {
 
   function save() {}
 
-  const CloseNotification = () => {
-    translateY.value -= height.value;
-  };
-
-  const ShowNotification = () => {
-    translateY.value += height.value;
-  };
   const animatedStyles = useAnimatedStyle(() => ({
     height: withSpring(height.value),
-    transform: [
-      {
-        translateY: withSpring(translateY.value),
-      },
-    ],
   }));
-
-  useImperativeHandle(
-    ref,
-    () => {
-      return {
-        focus() {
-          ShowNotification();
-        },
-      };
-    },
-    []
-  );
   return (
-    <GestureDetector gesture={pan}>
-      <Animated.View style={[styles.container, animatedStyles]}>
-        <View style={styles.NotififcationContent}>
-          <View style={styles.ShortNotification}>
-            <View style={styles.direction}>
-              {/* <Text>{item.direction}</Text> */}
-              <CompassArrow
-                destinationCoordinates={item.direction}
-              ></CompassArrow>
-              {/* <ArrowUpFromDot color={"green"} size={40} /> */}
-            </View>
-            <View style={styles.content}>
-              <View style={styles.indicator}>
-                {/* <Text>
+    <Animated.View style={[styles.container, animatedStyles]}>
+      <View style={styles.NotififcationContent}>
+        <View style={styles.ShortNotification}>
+          <View style={styles.direction}>
+            <CompassArrow
+              destinationCoordinates={item.direction}
+            ></CompassArrow>
+          </View>
+          <View style={styles.content}>
+            <View style={styles.indicator}>
+              {/* <Text>
                   {index} / {length - 1}
                 </Text> */}
-              </View>
-              <View style={styles.contenttext}>
-                <Text>{item.title}</Text>
-                <Text>{item.hint}</Text>
-              </View>
+            </View>
+            <View style={styles.contenttext}>
+              <Text>{item.title}</Text>
+              <Text>{item.hint}</Text>
             </View>
           </View>
-          {visible ? (
-            <View style={styles.MoreContent}>
-              <View style={styles.MoreContentImage}>
-                <Image
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    resizeMode: "cover",
-                    borderRadius: 20,
-                  }}
-                  source={{ uri: item.imageurl }}
-                ></Image>
-              </View>
-              <View style={styles.MoreContenttext}>
-                <Text>{item.ShortDescription}</Text>
-              </View>
-            </View>
-          ) : null}
-          {fullcontent ? (
-            <View style={styles.fullcontentview}>
-              <HTMLView value={item.Content} stylesheet={style} />
-            </View>
-          ) : null}
         </View>
+        {visible ? (
+          <View style={styles.MoreContent}>
+            <View style={styles.MoreContentImage}>
+              <Image
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  resizeMode: "cover",
+                  borderRadius: 20,
+                }}
+                source={{ uri: item.imageurl }}
+              ></Image>
+            </View>
+            <View style={styles.MoreContenttext}>
+              <Text>{item.ShortDescription}</Text>
+              <Text>here</Text>
+            </View>
+          </View>
+        ) : null}
+        {fullcontent ? (
+          <View style={styles.fullcontentview}>
+            <HTMLView value={item.Content} stylesheet={style} />
+          </View>
+        ) : null}
+      </View>
 
-        <View style={styles.NotificationButton}>
-          <View style={styles.buttonsection1}>
-            <TouchableOpacity onPress={CloseNotification} style={styles.Button}>
-              <Text style={[styles.ButtonText, { color: "#ef233c" }]}>
-                Close
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.buttonsection2}>
-            <TouchableOpacity style={styles.Button} onPress={save}>
-              <Text style={[styles.ButtonText, { color: "#95d5b2" }]}>
-                Save
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handlePress} style={styles.Button}>
-              <Text style={styles.ButtonText}>More</Text>
-            </TouchableOpacity>
-          </View>
+      <View style={styles.NotificationButton}>
+        <View style={styles.buttonsection1}>
+          <TouchableOpacity style={styles.Button}>
+            <Text style={[styles.ButtonText, { color: "#ef233c" }]}>Close</Text>
+          </TouchableOpacity>
         </View>
-      </Animated.View>
-    </GestureDetector>
+        <View style={styles.buttonsection2}>
+          <TouchableOpacity style={styles.Button} onPress={save}>
+            <Text style={[styles.ButtonText, { color: "#95d5b2" }]}>Save</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handlePress} style={styles.Button}>
+            <Text style={styles.ButtonText}>More</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Animated.View>
   );
-});
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -279,5 +244,3 @@ const style = StyleSheet.create({
     borderColor: "green",
   },
 });
-
-export default Notification;
